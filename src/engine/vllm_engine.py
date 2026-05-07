@@ -13,7 +13,10 @@ class VLLMEngine(BaseEngine):
         # Load the model (similar to HF but optimized backend)
         engine_args = AsyncEngineArgs(
             model=model_name,
-            dtype="float16"
+            dtype="float16",
+            gpu_memory_utilization=0.85, # Reduce memory footprint to account for system/display overhead and prevent OOM
+
+            enforce_eager=True # Disable CUDA graphs to save VRAM and speed up engine initialization, but results in slightly lower tokens/sec
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args) 
