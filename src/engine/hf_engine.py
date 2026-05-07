@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+import asyncio
 
 from src.engine.base import BaseEngine
 
@@ -17,7 +18,7 @@ class HFEngine(BaseEngine):
             device_map="auto",  # auto places on GPU if available
         )
 
-    def generate(self, prompt: str, max_tokens: int, temperature: float):
+    def _sync_generate(self, prompt: str, max_tokens: int, temperature: float):
         # Tokenize
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
 
@@ -40,3 +41,8 @@ class HFEngine(BaseEngine):
             "prompt_tokens": input_tokens_length,
             "completion_tokens": len(generated_tokens),
         }
+
+    async def generate(self, prompt: str, max_tokens: int, temperature: float):
+
+        return await asyncio.to_thread(self._sync_generate, prompt, max_tokens, temperature)
+        
