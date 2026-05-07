@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from src.engine.hf_engine import HFEngine
+from src.engine.vllm_engine import VLLMEngine
 from src.api.routes import router
 from src.config import settings
 
@@ -13,7 +14,10 @@ async def lifespan(app: FastAPI):
     # -------------------------
 
     # Initilize engine
-    engine = HFEngine(settings.model_name)
+    if settings.engine_type == "vllm":
+        engine = VLLMEngine(settings.model_name)
+    else:
+        engine = HFEngine(settings.model_name)
 
     # Store engine in app state so all routes can access it
     # app.state acts like a global container for shared resources
@@ -24,11 +28,13 @@ async def lifespan(app: FastAPI):
     # Yield control → app starts serving requests after this point
     yield
 
-    # -------------------------
+     # -------------------------
     # 🧹 Shutdown Logic
     # -------------------------
 
     print("🛑 Application shutting down...")
+
+
 
 
 # Create FastAPI app with lifespan handler
